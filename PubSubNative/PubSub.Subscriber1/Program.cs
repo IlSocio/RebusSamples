@@ -6,6 +6,9 @@ using Rebus.Activation;
 using Rebus.Config;
 using Rebus.Handlers;
 using Rebus.Logging;
+using Rebus.Persistence.InMem;
+using Rebus.Routing.TypeBased;
+using Rebus.Transport.FileSystem;
 
 namespace PubSub.Subscriber1
 {
@@ -15,11 +18,16 @@ namespace PubSub.Subscriber1
         {
             using (var activator = new BuiltinHandlerActivator())
             {
+                var subscriberStore = new InMemorySubscriberStore();
                 activator.Register(() => new Handler());
+
+                // TODO: Configura per usare Azure Storage Queue...
 
                 Configure.With(activator)
                     .Logging(l => l.ColoredConsole(minLevel: LogLevel.Warn))
-                    .Transport(t => t.UseAzureServiceBus(GetConnectionString(), "subscriber1"))
+                    .Transport(t => t.UseFileSystem(@"c:\rebus\", "DurationEstimator"))
+                    .Routing(r => r.TypeBased().MapAssemblyOf<StringMessage>("SSEBridge"))
+                    //                    .Transport(t => t.UseAzureServiceBus(GetConnectionString(), "subscriber1"))
                     .Start();
 
                 activator.Bus.Subscribe<StringMessage>().Wait();
@@ -28,6 +36,8 @@ namespace PubSub.Subscriber1
 
                 Console.WriteLine("This is Subscriber 1");
                 Console.WriteLine("Press ENTER to quit");
+                Console.ReadLine();
+                activator.Bus.Unsubscribe<StringMessage>().Wait();
                 Console.ReadLine();
                 Console.WriteLine("Quitting...");
             }

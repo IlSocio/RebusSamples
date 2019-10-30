@@ -5,61 +5,70 @@ using Rebus.Activation;
 using Rebus.Config;
 using Rebus.Logging;
 using Rebus.Persistence.FileSystem;
+using Rebus.Persistence.InMem;
+using Rebus.Transport.FileSystem;
 // ReSharper disable BadControlBracesIndent
 
 namespace PubSub.Publisher
 {
     class Program
     {
-        static readonly string JsonFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "rebus_subscriptions.json");
-
         static void Main()
         {
             using (var activator = new BuiltinHandlerActivator())
             {
+                var subscriberStore = new InMemorySubscriberStore();
+
+                // TODO: Configura per usare Azure Storage Queue e SQL database per le sottoscrizioni...
 
                 Configure.With(activator)
                     .Logging(l => l.ColoredConsole(minLevel: LogLevel.Warn))
-                    .Transport(t => t.UseAzureServiceBus(GetConnectionString(), "publisher"))
-                    //                    .Subscriptions(s => s.UseJsonFile(JsonFilePath))
+                    .Transport(t => t.UseFileSystem(@"c:\rebus\", "SSEBridge"))
+                    .Subscriptions(s => s.UseJsonFile(@"c:\rebus\subscriptions.json"))
                     .Start();
+
+                //    .Transport(t => t.UseAzureServiceBus(GetConnectionString(), "SseBridge"))
+
+                // for unit-tests
+                //    .Transport(t => t.UseInMemoryTransport(new InMemNetwork(), "owin-test"))
+                //    .Subscriptions(s => s.StoreInMemory(subscriberStore)) // useful in Unit-tests
+
+                // for local Debug
+                //    .Transport(t => t.UseFileSystem(@"c:\rebus\", "SseBridge"))
+                //    .Subscriptions(s => s.UseJsonFile(@"c:\rebus\subscriptions.json"))
 
                 var startupTime = DateTime.Now;
 
                 while (true)
                 {
-                    Console.WriteLine(@"a) Publish string
-b) Publish DateTime
-c) Publish TimeSpan
-q) Quit");
+                    Console.WriteLine(@"1) Publish string");
+                    Console.WriteLine(@"2) Publish DateTime");
+                    Console.WriteLine(@"3) Publish TimeSpan");
+                    Console.WriteLine(@"4) Send ReverseGeoCode Command");
+                    Console.WriteLine(@"q) Quit");
 
                     var keyChar = char.ToLower(Console.ReadKey(true).KeyChar);
                     var bus = activator.Bus.Advanced.SyncBus;
 
                     switch (keyChar)
                     {
-                        case 'a':
+                        case '1':
                             bus.Publish(new StringMessage("Hello there, this is a string message from a publisher!"));
                             break;
 
-                        case 'b':
+                        case '2':
                             bus.Publish(new DateTimeMessage(DateTime.Now));
                             break;
 
-                        case 'c':
+                        case '3':
                             bus.Publish(new TimeSpanMessage(DateTime.Now - startupTime));
                             break;
 
                         case 'q':
-                            goto consideredHarmful;
-
-                        default:
-                            Console.WriteLine($"There's no option '{keyChar}'");
-                            break;
+                            Console.WriteLine("Quitting!");
+                            return;
                     }
                 }
-
-                consideredHarmful: Console.WriteLine("Quitting!");
             }
         }
 
