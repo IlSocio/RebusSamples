@@ -4,19 +4,24 @@ using PubSub.Messages;
 using Rebus.Activation;
 using Rebus.Config;
 using Rebus.Logging;
+using Rebus.Persistence.FileSystem;
 // ReSharper disable BadControlBracesIndent
 
 namespace PubSub.Publisher
 {
     class Program
     {
+        static readonly string JsonFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "rebus_subscriptions.json");
+
         static void Main()
         {
             using (var activator = new BuiltinHandlerActivator())
             {
+
                 Configure.With(activator)
                     .Logging(l => l.ColoredConsole(minLevel: LogLevel.Warn))
                     .Transport(t => t.UseAzureServiceBus(GetConnectionString(), "publisher"))
+                    //                    .Subscriptions(s => s.UseJsonFile(JsonFilePath))
                     .Start();
 
                 var startupTime = DateTime.Now;
@@ -54,7 +59,7 @@ q) Quit");
                     }
                 }
 
-            consideredHarmful: Console.WriteLine("Quitting!");
+                consideredHarmful: Console.WriteLine("Quitting!");
             }
         }
 
