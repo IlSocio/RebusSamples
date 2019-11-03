@@ -69,6 +69,12 @@
     <Reference Include="Rebus.AzureServiceBus, Version=6.0.7.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Rebus.AzureServiceBus.6.0.7\lib\netstandard2.0\Rebus.AzureServiceBus.dll</HintPath>
     </Reference>
+    <Reference Include="Rebus.SqlServer, Version=5.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rebus.SqlServer.5.1.0\lib\net46\Rebus.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Rebus.UnitOfWork, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rebus.UnitOfWork.4.0.0\lib\net45\Rebus.UnitOfWork.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
@@ -153,9 +159,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PubSub.Messages\PubSub.Messages.csproj">
+    <ProjectReference Include="..\PubSub.Publisher.Messages\PubSub.Publisher.Contracts.csproj">
       <Project>{289B486F-B273-4C1B-82D4-4B4AB98B1942}</Project>
-      <Name>PubSub.Messages</Name>
+      <Name>PubSub.Publisher.Contracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PubSub.ReverseGeocoder.Messages\PubSub.ReverseGeocoder.Contracts.csproj">
+      <Project>{A9EA8878-EE3D-4CBE-AFCE-EA5EC7A91DDE}</Project>
+      <Name>PubSub.ReverseGeocoder.Contracts</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

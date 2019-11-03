@@ -153,9 +153,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PubSub.Messages\PubSub.Messages.csproj">
+    <ProjectReference Include="..\PubSub.Publisher.Messages\PubSub.Publisher.Contracts.csproj">
       <Project>{289B486F-B273-4C1B-82D4-4B4AB98B1942}</Project>
-      <Name>PubSub.Messages</Name>
+      <Name>PubSub.Publisher.Contracts</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

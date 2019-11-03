@@ -7,14 +7,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PubSub.Publisher", "PubSub.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PubSub.Subscriber1", "PubSub.Subscriber1\PubSub.Subscriber1.csproj", "{D1BFFD72-E9E0-4D5A-89CC-541A9A25A02B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PubSub.Subscriber2", "PubSub.Subscriber2\PubSub.Subscriber2.csproj", "{644DF104-60EE-4E98-8E72-2428E4519698}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{38B04808-A0C5-46B5-9632-E9D6938AA9EB}"
-	ProjectSection(SolutionItems) = preProject
-		README.md = README.md
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PubSub.Messages", "PubSub.Messages\PubSub.Messages.csproj", "{289B486F-B273-4C1B-82D4-4B4AB98B1942}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PubSub.ReverseGeocoder", "PubSub.ReverseGeocoder\PubSub.ReverseGeocoder.csproj", "{644DF104-60EE-4E98-8E72-2428E4519698}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PubSub.Publisher.Contracts", "PubSub.Publisher.Messages\PubSub.Publisher.Contracts.csproj", "{289B486F-B273-4C1B-82D4-4B4AB98B1942}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PubSub.ReverseGeocoder.Contracts", "PubSub.ReverseGeocoder.Messages\PubSub.ReverseGeocoder.Contracts.csproj", "{A9EA8878-EE3D-4CBE-AFCE-EA5EC7A91DDE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +37,10 @@ Global
 		{289B486F-B273-4C1B-82D4-4B4AB98B1942}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{289B486F-B273-4C1B-82D4-4B4AB98B1942}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{289B486F-B273-4C1B-82D4-4B4AB98B1942}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9EA8878-EE3D-4CBE-AFCE-EA5EC7A91DDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9EA8878-EE3D-4CBE-AFCE-EA5EC7A91DDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9EA8878-EE3D-4CBE-AFCE-EA5EC7A91DDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9EA8878-EE3D-4CBE-AFCE-EA5EC7A91DDE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

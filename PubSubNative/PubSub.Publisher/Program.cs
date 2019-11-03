@@ -1,13 +1,21 @@
 ﻿using System;
 using System.Configuration;
-using PubSub.Messages;
+using System.Threading.Tasks;
+using PubSub.Publisher.Contracts;
+using PubSub.ReverseGeocoder.Contracts;
 using Rebus.Activation;
+using Rebus.Bus;
 using Rebus.Config;
+using Rebus.Handlers;
 using Rebus.Logging;
 using Rebus.Persistence.FileSystem;
 using Rebus.Persistence.InMem;
+using Rebus.Pipeline;
+using Rebus.Retry.Simple;
+using Rebus.Routing.TypeBased;
+using Rebus.Subscriptions;
 using Rebus.Transport.FileSystem;
-// ReSharper disable BadControlBracesIndent
+using Rebus.Transport.InMem;
 
 namespace PubSub.Publisher
 {
@@ -15,53 +23,73 @@ namespace PubSub.Publisher
     {
         static void Main()
         {
+            const string QUEUE = "rebus-Publisher";
+            const string QUEUE_ERRORS = "rebus-errors";
+            const string QUEUE_GEOCODER = "rebus-ReverseGeocoder";
+
             using (var activator = new BuiltinHandlerActivator())
             {
-                var subscriberStore = new InMemorySubscriberStore();
+                activator.Register((bus, messageContext) => new Handler(bus, messageContext));
 
-                // TODO: Configura per usare Azure Storage Queue e SQL database per le sottoscrizioni...
-
+                /*
+                // for local Debug...
                 Configure.With(activator)
                     .Logging(l => l.ColoredConsole(minLevel: LogLevel.Warn))
-                    .Transport(t => t.UseFileSystem(@"c:\rebus\", "SSEBridge"))
-                    .Subscriptions(s => s.UseJsonFile(@"c:\rebus\subscriptions.json"))
-                    .Start();
+                    .Options(o => o.SimpleRetryStrategy(errorQueueAddress: QUEUE_ERRORS))
+                    .Transport(t => t.UseFileSystem(@"c:\servicebus\", QUEUE))
+                    .Subscriptions(s => s.UseJsonFile(@"c:\servicebus\subscriptions.json"))
+                    .Routing(r => r.TypeBased().MapAssemblyOf<ReverseGeoRequest>(QUEUE_GEOCODER))
+                    .Start(); /**/
 
-                //    .Transport(t => t.UseAzureServiceBus(GetConnectionString(), "SseBridge"))
+                /*
+                // for integration-tests
+                Configure.With(activator)
+                    .Logging(l => l.ColoredConsole(minLevel: LogLevel.Warn))
+                    .Options(o => o.SimpleRetryStrategy(errorQueueAddress: QUEUE_ERRORS))
+                    .Transport(t => t.UseInMemoryTransport(new InMemNetwork(), QUEUE))
+                    .Subscriptions(s => s.StoreInMemory(new InMemorySubscriberStore())) // useful in Unit-tests
+                    .Routing(r => r.TypeBased().MapAssemblyOf<ReverseGeoRequest>(QUEUE_GEOCODER))
+                    .Start(); /**/
 
-                // for unit-tests
-                //    .Transport(t => t.UseInMemoryTransport(new InMemNetwork(), "owin-test"))
-                //    .Subscriptions(s => s.StoreInMemory(subscriberStore)) // useful in Unit-tests
 
-                // for local Debug
-                //    .Transport(t => t.UseFileSystem(@"c:\rebus\", "SseBridge"))
-                //    .Subscriptions(s => s.UseJsonFile(@"c:\rebus\subscriptions.json"))
+                // Azure Service Bus...
+                const string CONNECTION_STRING = "";
+                Configure.With(activator)
+                    .Logging(l => l.ColoredConsole(minLevel: LogLevel.Warn))
+                    .Options(o => o.SimpleRetryStrategy(errorQueueAddress: QUEUE_ERRORS))
+                    .Transport(t => t.UseAzureServiceBus(CONNECTION_STRING, QUEUE))
+                    .Routing(r => r.TypeBased().MapAssemblyOf<ReverseGeoRequest>(QUEUE_GEOCODER))
+                    .Start(); /**/
+
 
                 var startupTime = DateTime.Now;
-
                 while (true)
                 {
-                    Console.WriteLine(@"1) Publish string");
-                    Console.WriteLine(@"2) Publish DateTime");
-                    Console.WriteLine(@"3) Publish TimeSpan");
-                    Console.WriteLine(@"4) Send ReverseGeoCode Command");
+                    Console.WriteLine(@"1) Publish String Notification");
+                    Console.WriteLine(@"2) Publish DateTime Notification");
+                    Console.WriteLine(@"3) Publish TimeSpan Notification");
+                    Console.WriteLine(@"4) Send ReverseGeoCode Request");
                     Console.WriteLine(@"q) Quit");
 
                     var keyChar = char.ToLower(Console.ReadKey(true).KeyChar);
-                    var bus = activator.Bus.Advanced.SyncBus;
+                    var busSync = activator.Bus.Advanced.SyncBus;
 
                     switch (keyChar)
                     {
                         case '1':
-                            bus.Publish(new StringMessage("Hello there, this is a string message from a publisher!"));
+                            busSync.Publish(new StringNotification("Hello there, this is a string notification from a Publisher!"));
                             break;
 
                         case '2':
-                            bus.Publish(new DateTimeMessage(DateTime.Now));
+                            busSync.Publish(new DateTimeNotification(DateTime.Now));
                             break;
 
                         case '3':
-                            bus.Publish(new TimeSpanMessage(DateTime.Now - startupTime));
+                            busSync.Publish(new TimeSpanNotification(DateTime.Now - startupTime));
+                            break;
+
+                        case '4':
+                            busSync.Send(new ReverseGeoRequest(10, 20));
                             break;
 
                         case 'q':
@@ -71,20 +99,30 @@ namespace PubSub.Publisher
                 }
             }
         }
+    }
 
-        static string GetConnectionString()
+    class Handler : IHandleMessages<ReverseGeoResponse>
+    {
+        private IBus Bus;
+        private IMessageContext MessageContext;
+
+        public Handler(IBus bus, IMessageContext messageContext)
         {
-            return ConfigurationManager.ConnectionStrings["servicebus"]?.ConnectionString
-                ?? throw new ConfigurationErrorsException(@"Could not find 'servicebus' connection string. 
+            Bus = bus;
+            MessageContext = messageContext;
+        }
 
-Please provide a valid Azure Service Bus connection string, most likely by going to your service bus namespace in the Azure Portal
-and retrieving either 'Primary (...)' or 'Secondary Connection String' from the 'Shared Access Policies' tab.
+        public async Task Handle(ReverseGeoResponse message)
+        {
+            Console.WriteLine($"Got Response: {message}");
 
-If you create another SAS connection string, you need to give it 'Manage' rights, because Rebus (by default) wants to help
-you create all of the necessary entities (queues, topics, subscriptions).
+            Console.WriteLine("Sending Notification...");
+            await Bus.Publish(new StringNotification("Received new ReverseGeocoded Position"));
 
-You may also provide a less priviledges SAS signature, but then you would need to create the entities yourself and disable
-Rebus' ability to automatically create these things.");
+            // TODO: update database...
+
+            Console.WriteLine("Notification Sent");
         }
     }
+
 }
